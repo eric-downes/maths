@@ -1,9 +1,61 @@
+'''
+can we go from the N-ary relations bigraph to the Formal Concepts bigraph in TDBs work?
+
+for finding could try this:
+https://stackoverflow.com/questions/1348783/finding-all-disconnected-subgraphs-in-a-graph
+
+can use multiprocessing to split the problem
+0. sparse rep -> list of nodes
+1. each worker takes a piece of the graph
+2. each worker assigns label & publishes, then:
+3. gets next nodes & assigns labels there & publishes
+4. if we have a globally readable dict can do O(1) lookup
+   --> as soon as a node finds one of its labels intersect w/ another,
+       publishes this collisin to a process that notifies the appropriate children
+       they merge their data and one of the processes ends
+5. continue until all node in 0 have been assigned and then wait for chldren to finish
+(can we use this with time-frames to split blockchain interactions into seperate problems?)
+   --> what would a db look like?  f(start, end, node) = [ connected-nodes ]
+       could use bloom filters to store... if we did that how do we sanity-check the returned?
+''' 
+
 from collections import defaultdict
 from functools import reduce
 from typing import *
 import warnings
 
-class NDRelation:
+# this is TDB's system w/ same syntax
+class PreConcept:
+    def __init__(self, rels: Set[Tuple[Any, Any]]):
+        X = set()
+        Y = set()
+        a = defaultdict(lambda : set())
+        b = defaultdict(lambda : set())
+        for l, r in rels:
+            a[l].add(r)
+            b[r].add(l)
+        self.a = a
+        self.b = b
+        self.X = X
+        self.Y = Y
+    def ext(self, sub:set, to_right:bool = True) -> set:
+        home = a if to_right else b
+        assert(sub.issubset(home.keys()))
+        return set.intersection( *{home[x] for x in sub} )
+    def f(self, A:set) -> set:
+        return self.ext(A)
+    def g(self, B:set) -> set:
+        return self.ext(B, False)
+    def formal_concepts(self):
+        fc = set()
+        for A in powerlist(a.keys()):
+            B = f(A)
+            if not B: continue
+            if A == g(B): fc.add((A, B))
+        return fc
+
+        
+class NDRelation: #my n-dim extension
     def __init__(self, rels:Set[set]):
         objs = set()
         emaps = defaultdict(set)
@@ -47,8 +99,9 @@ class NDRelation:
     def relations(self):
         return self._imaps.values()
 
-    def table(self):
-        pass
+    def export_as(self, typ):
+        if typ == pd.DataFrame: pass # export table / biadjacency matrix
+        if typ == nx.Graph: pass # export hypergraph as bigraph
     
     def test_self(full = False):
         R = {{1,2}, {1,2,3}, {1,3}, {3,4}}
@@ -62,9 +115,11 @@ class NDRelation:
 
         R = {{'orange','fruit'}, {'green','fruit'}, {'purple','vegetable'}}
         ndrel = NDRelation(R)
+        assert(ndrel.images('orange') == {{'fruit'}})
         assert(ndrel.images('fruit') == {{'orange'}, {'green'}})
         assert(ndrel.extension({'orange','green'}) == {'fruit'})
         assert(ndrel.extension({'purple'}) == {'vegetable'})
+        assert(ndrel.extension({'orange','purple'}) == set())
 
         
 # if empty sets commonly result from fiber and preimage with U=False,
