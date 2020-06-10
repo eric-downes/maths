@@ -1,0 +1,115 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\title{Non-Associative Functions}
+\author{Eric, Blake, David, Kyle, ...}
+\date
+
+\begin{document}
+
+Pull material from here: \href{https://paper.dropbox.com/doc/Category-Theory--AssmMDYM3jAU7EX1TF7_5BWvAQ-8BBmIrxmkEh3FwKEt14J6}{Category Theory Notes}.
+
+Direction 1: {\bf Conjecture}: Every non-associative relation (transformation?) can
+be written as a nesting of multi-input associative functions.\\
+
+Direction 2: a paper ``What {\bf isn't} composable? (And How to make it so)'' in which we lay out
+some clear examples of what things {\em aren't} categories, why, and how they can be categorified.
+
+Looks like what I've been trying to do might be \href{
+  http://cglab.ca/~morin/publications/ds/bloom-submitted.pdf}{
+  Operads}
+
+\section{Non-Associative Examples}
+
+\subsection{Exponentation $a^b$}
+
+$$(2**3)**4 != 2**(3**4)$$
+
+This appears to be a nice counter-example.  But its actually a trick
+of the eye.  If we write as a function $f(a,b) = a^b = a**b$, we see the
+problem:
+
+\begin{equation}
+(2**3)**4 = f( f(2, 3), 4) = G_4( F_2(3) )
+2**(3**4) = f(2, f(3, 4)) = F_2( F_3(4) )
+\end{equation}
+
+That is not association.
+
+This is: $f(2, f(3, f(4, x))) = F_2 \circ F_3 \circ F_4(x)$ Where
+$F_n(x) := f(n, x) = n**x$ and conversely $G_x(n) := f(n,x)$.
+
+\subsection{Cross Product $A\times B$}
+
+A x ( B x C ) != ( A x B ) x C
+The trouble with binary relations is they can have implicit symmetry breaking... in this case the right-handedness of 
+(i, j, k) := î... 
+sadly I wish I could tell you it was even that interesting. This is that whole "permuting the arguments and the arguments of the arguments" thing again.
+W x M == det[ î, W, M]
+We can thus see that the above is:
+det[ î, A, det[ î, B, C]] != det[ î, det[ î, A, B], C]
+
+Same damn thing as above! Looking at the actual functions in terms of
+structure (as if you need to write a program to perform the
+operations) resolves all confusion and reveals the truth.
+
+\subsection{Octonion Multiplication}
+
+(David)
+
+Explicitly writing out octonion multiplication:
+R-basis = {1, i1, i2, i3, i4, i5, i6, i7}
+i1^2 = i2^2 = i3^2 = i4^2 = i5^2 = i6^2 = i7^2 = -1
+i1*i2 = -i2*i1 = i3
+i1*i3 = -i3*i1 = -i2
+i1*i4 = -i4*i1 = i5
+i1*i5 = -i5*i1 = -i4
+i1*i6 = -i6*i1 = i7
+i1*i7 = -i7*i1 = -i6
+i2*i3 = -i3*i2 = i1
+i2*i4 = -i4*i2 = i6
+i2*i5 = -i5*i2 = i7
+i2*i6 = -i6*i2 = -i4
+i2*i7 = -i7*i2 = -i5
+i3*i4 = -i4*i3 = i7
+i3*i5 = -i5*i3 = i6
+i3*i6 = -i6*i3 = -i5
+i3*i7 = -i7*i3 = -i4
+i4*i5 = -i5*i4 = i1
+i4*i6 = -i6*i4 = i2
+i4*i7 = -i7*i4 = i3
+i5*i6 = -i6*i5 = i3
+i5*i7 = -i7*i5 = i2
+i6*i7 = -i7*i6 = i1
+That should work although I'm not sure all the signs are OK
+
+Associativity follows from the definitions of functions and function
+composition. However, there are circumstances under which the clothes
+worn by certain functions doesn't have to follow the associative law
+-- at least, in a naive, direct sense.
+
+Multiplication of octonions is non-associative. Identifying the
+octonions with real coefficients with R^8, left multiplication by a
+nonzero octonion permutes R^8 according to the composition of a rigid
+motion and a scaling; if the sum of the squares of the coefficients of
+this octonion is 1, then R^8 is permuted according to a rigid
+motion.
+
+Composition of rigid motions is however associative.  IIRC part of the
+way these are reconciled is that the composition of two rigid motions
+resulting from left-multiplications by unit octonions is not, in
+general, accomplishable via a left-multiplication by a single unit
+octonion. So you wind up 'stranded' in the larger group SO(8), and
+IIRC any element of SO(8) can be written as the composition of 4
+left-multiplications by unit octonions.
+
+So then composition of rigid motions is associative, as it always is;
+however, when some of these rigid motions wear octonion clothing, that
+clothing doesn't need to look associative. I am not sure how far this
+framing of associativity would extend, though.
+
+
+\subsection{Path Following in $\mathbb{R}\times\mathbb{R}^2$ }
+
+\end{document}
