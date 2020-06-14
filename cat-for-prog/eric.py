@@ -1,4 +1,5 @@
-def trycept(f, args, retval=None, raize=False, kwargs):
+
+def trycept(f, *args, retval=None, raize=False, **kwargs):
     try: return f(*args, **kwargs)
     except Exception as e:
         if raize: raise e
