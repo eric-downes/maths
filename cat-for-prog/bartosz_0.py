@@ -44,10 +44,10 @@ link to itself
 # Is Facebook a category, with people as objects and friendships as morphisms?
 '''
 no.  
-friendship not transitive a->b b->c =/=> a->c
+friendship not transitive a->b * b->c =/=> a->c
 
 can be made a category if you reduce friendships to link-following as
-we did above, if every page with friendhip link in homset is viewable
+we did above, iff every page with friendhip link in homset is viewable
 '''
 
 # When is a directed graph a category?
@@ -55,8 +55,7 @@ we did above, if every page with friendhip link in homset is viewable
 1. it needs self-links
 2. nothing accumulated along the following of an edge not present at the node
 
-could equip networkx with knowledge of categories... would that helpm
-with forensic graphs? 
-
+could equip networkx / graphviz with knowledge of categories... would that helpm
+with forensic graphs? maybe could make a new graph generator "free category"
 '''
 
