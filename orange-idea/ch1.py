@@ -51,7 +51,7 @@ class PreConcept:
         for A in powerlist(a.keys()):
             B = f(A)
             if not B: continue
-            if A == g(B): fc.add((A, B))
+            if A == g(B): fc.add({A,B})
         return fc
 
         
