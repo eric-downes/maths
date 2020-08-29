@@ -26,7 +26,7 @@ def trycept(f, *args, default = None, raize = False, **nargs):
 def blake(x:bytes, nbytes:int) -> bytes:
     return blake2b(x, digest_size = nbytes).digest()
 
-def edge(x:int, f:Callable[bytes,bytes]):
+def edge(x:int, f:Callable[bytes,bytes]) -> Tuple[bytes,bytes]:
     x = x.to_bytes(L,'big')
     return (x, f(x))
 
@@ -34,9 +34,9 @@ def gen_edges(L:int) -> Dict[bytes,bytes]:
     with mp.Pool(mp.cpu_count() * 3 // 4) as p:
         g = partial(edge, f = partial(blake, nbytes = L))
         edges = p.map(g, range(2 ** L))
-        edge_dict = {t[0]:t[1] for t in edges}
-        pickle.dump(edge_dict, f'hendo/{L}_full.pkl')
-        return edge_dict
+    edge_dict = {t[0]:t[1] for t in edges}
+    return edge_dict
 
 if __name__ == '__main__' and trycept(not_, __IPYTHON__):
-    gen_edges(sys.argv[1] if len(sys.argv) > 1 else 1)
+    edge_dict = gen_edges(sys.argv[1] if len(sys.argv) > 1 else 1)
+    pickle.dump(edge_dict, f'hendo/{L}_full.pkl')
