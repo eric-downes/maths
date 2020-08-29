@@ -25,6 +25,12 @@ from typing import *
 import warnings
 
 # this is TDB's system w/ same syntax
+# if we inherit from nx.DiGraph can -> graph & use connected_components to find formal concepts
+# https://networkx.github.io/documentation/networkx-1.9.1/reference/generated/networkx.algorithms.components.connected.connected_components.html
+
+# these involve fixed points... so does Jost CM Ch 2's general diagonalization argument ... related?
+# IF SO then we can prove fixed points exist by detecting the surjectivity of a function...
+
 class PreConcept:
     def __init__(self, rels: Set[Tuple[Any, Any]]):
         X = set()
@@ -66,8 +72,8 @@ class NDRelation: #my n-dim extension
             if d <= 1: continue
             sid = id(s)
             imaps[sid] = s
+            objs.update(s)
             for e in s:
-                objs.add(e)
                 emaps[e].add(sid)
                 dmaps[d].add(sid)
         self.objects = frozenset(objs)
@@ -150,6 +156,8 @@ def concept_generator(self, seq=list(self.objects)):
             yield [seq[0]] + sub
             yield sub
 
+def ndrel_to_preconcept()
+            
             
 '''
 0. test what we have so far
