@@ -22,8 +22,9 @@ from functools import partial
 from scipy.stats import binom
 
 ENDIAN = 'big'
+HashFunc = Callable[[int, int], Tuple[int, int]]
 
-def trycept(f, *args, default = None, raize = False, **nargs):
+def trycept(f:Callable, *args, default = None, raize:bool = False, **nargs):
     try: f(*args, **nargs)
     except Exception as e:
         if raize: raise e
@@ -40,24 +41,23 @@ def i2b(x:int, nbytes:int = None) -> bytes:
 def b2i(x:bytes) -> bytes:
     return int.from_bytes(x, ENDIAN)
 
-def gen_edges(nbytes: int,
-              hash_fun: Callable[[int,int], Tuple[int,int]]) -> List[Tuple[int,int]]:
+def gen_edges(nbytes:int, hash_fun:HashFunc) -> List[Tuple[int,int]]:
     h = partial(hash_fun, nbytes = nbytes)
     with mp.Pool(mp.cpu_count() * 3 // 4) as p:
         return p.map(h, range(2 ** (nbytes * 8)))
 
 if __name__ == '__main__' and trycept(not_, __IPYTHON__):
     # setup
-    for d in ['hendo','hendo_graphs']:
+    for d in ['hendo','hendo_graphs','hendo_stats']:
         if not os.path.isdir(d): os.mkdir(d)
-    render = '--no-view' in ''.join(sys.argv)
+    view = '--view' in ''.join(sys.argv)
     nB = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     # generate & save data
     edges = gen_edges(nB, blake)
     pickle.dump(edges, f'hendo/blake2b_{nB}B_full.pkl')
     dg = digraph()
     dg.edges(edges)
-    dg.render(f'hendo_graph/blake2b_{nB}B_full.gv', view = render)
+    dg.render(f'hendo_graph/blake2b_{nB}B_full.gv', view = view)
     # stats
     maps = pd.DataFrame(edges, columns = ['x','hx']).set_index('x')['hx'] 
     primg_hist = maps.value_counts().value_counts()
