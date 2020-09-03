@@ -2,19 +2,24 @@
 lets study the endomorphisms of cryptographic hash functions!
 
 TODO:
- * is hashlib.sha3_256 the same as keccak 256 in Monero?, eth?
- * use graphviz to make pretty graphs from the edge dict
+ * record exact diff bet. hashlib.sha3_256 & keccak-256 in Monero?, eth?
  * make an interruptible version that pickles state upon SIGHUP, SIGTERM, etc
+ * add an analytics function that counts the number of partitions
+ * .. for cycles (connected components?)
 '''
 
 import os
 import sys
+import math
 import pickle
+import pandas as pd
 from typing import *
 from operator import not_
 from hashlib import blake2b
+from graphviz import digraph
 import multiprocessing as mp
 from functools import partial
+from scipy.stats import binom
 
 ENDIAN = 'big'
 
@@ -36,12 +41,25 @@ def b2i(x:bytes) -> bytes:
     return int.from_bytes(x, ENDIAN)
 
 def gen_edges(nbytes: int,
-              H: Callable[[int,int], Tuple[int,int]]) -> List[Tuple[int,int]]:
+              hash_fun: Callable[[int,int], Tuple[int,int]]) -> List[Tuple[int,int]]:
+    h = partial(hash_fun, nbytes = nbytes)
     with mp.Pool(mp.cpu_count() * 3 // 4) as p:
-        return p.map(blake, range(2 ** (nbytes * 8)))
+        return p.map(h, range(2 ** (nbytes * 8)))
 
 if __name__ == '__main__' and trycept(not_, __IPYTHON__):
-    if not os.path.isdir('hendo'): os.mkdir('hendo')
-    L = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-    edges = gen_edges(L)
-    pickle.dump(edges, f'hendo/{L}B_full.pkl')
+    # setup
+    for d in ['hendo','hendo_graphs']:
+        if not os.path.isdir(d): os.mkdir(d)
+    render = '--no-view' in ''.join(sys.argv)
+    nB = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    # generate & save data
+    edges = gen_edges(nB, blake)
+    pickle.dump(edges, f'hendo/blake2b_{nB}B_full.pkl')
+    dg = digraph()
+    dg.edges(edges)
+    dg.render(f'hendo_graph/blake2b_{nB}B_full.gv', view = render)
+    # stats
+    maps = pd.DataFrame(edges, columns = ['x','hx']).set_index('x')['hx'] 
+    primg_hist = maps.value_counts().value_counts()
+    primg_hist.loc[0] = len(maps) - primg_hist.sum()
+    primg_hist.to_csv(f'hendo_stats/blake2b_{nB}B_stats.csv')
