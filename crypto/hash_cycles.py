@@ -10,12 +10,13 @@ TODO:
 import os
 import sys
 import pickle
+from typing import *
 from operator import not_
 from hashlib import blake2b
 import multiprocessing as mp
 from functools import partial
 
-if not os.path.isdir('hendo'): os.mkdir('hendo')
+ENDIAN = 'big'
 
 def trycept(f, *args, default = None, raize = False, **nargs):
     try: f(*args, **nargs)
@@ -23,20 +24,24 @@ def trycept(f, *args, default = None, raize = False, **nargs):
         if raize: raise e
         return default
 
-def blake(x:bytes, nbytes:int) -> bytes:
-    return blake2b(x, digest_size = nbytes).digest()
+def blake(x:int, nbytes:int) -> Tuple[int,int]:
+    h = blake2b(i2b(x, nbytes), digest_size = nbytes).digest()
+    return (b2i(x), b2i(h))
 
-def edge(x:int, f:Callable[bytes,bytes]) -> Tuple[bytes,bytes]:
-    x = x.to_bytes(L,'big')
-    return (x, f(x))
+def i2b(x:int, nbytes:int = None) -> bytes:
+    if nbytes is None: nbytes = math.ceil(math.log2(x) / 8)
+    return x.to_bytes(nbytes, ENDIAN)
 
-def gen_edges(L:int) -> Dict[bytes,bytes]:
+def b2i(x:bytes) -> bytes:
+    return int.from_bytes(x, ENDIAN)
+
+def gen_edges(nbytes: int,
+              H: Callable[[int,int], Tuple[int,int]]) -> List[Tuple[int,int]]:
     with mp.Pool(mp.cpu_count() * 3 // 4) as p:
-        g = partial(edge, f = partial(blake, nbytes = L))
-        edges = p.map(g, range(2 ** L))
-    edge_dict = {t[0]:t[1] for t in edges}
-    return edge_dict
+        return p.map(blake, range(2 ** (nbytes * 8)))
 
 if __name__ == '__main__' and trycept(not_, __IPYTHON__):
-    edge_dict = gen_edges(sys.argv[1] if len(sys.argv) > 1 else 1)
-    pickle.dump(edge_dict, f'hendo/{L}_full.pkl')
+    if not os.path.isdir('hendo'): os.mkdir('hendo')
+    L = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    edges = gen_edges(L)
+    pickle.dump(edges, f'hendo/{L}B_full.pkl')
