@@ -6,6 +6,11 @@ TODO:
  * make an interruptible version that pickles state upon SIGHUP, SIGTERM, etc
  * add an analytics function that counts the number of partitions
  * .. for cycles (connected components?)
+ * what graph viz software can handle 16e6 edges? ... 4e9???
+ * if we start proc & have ea compte chains, and use shared mem.... could compute
+   stats as we go.
+ * record avalanche criteria -- change 1 bit, do 50% of output bits change?
+ * come up with a "truly" random hendo using random.org...
 '''
 
 import os
@@ -62,4 +67,4 @@ if __name__ == '__main__' and trycept(not_, __IPYTHON__):
     maps = pd.DataFrame(edges, columns = ['x','hx']).set_index('x')['hx'] 
     primg_hist = maps.value_counts().value_counts()
     primg_hist.loc[0] = len(maps) - primg_hist.sum()
-    primg_hist.to_csv(f'hendo_stats/blake2b_{nB}B_stats.csv')
+    primg_hist.to_csv(f'hendo_stats/blake2b_{nB}B_full.csv')

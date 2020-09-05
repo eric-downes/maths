@@ -1,49 +1,67 @@
-'''
-inefficient primes... try using seive of erastothenes
-'''
-from functools import partial, reduce
+from multiprocessing.sharedctypes import SynchronizedArray
 import multiprocessing as mp
-from operator import and_
+from functools import partial
+from bitarray import bitarray
 from typing import *
 import pickle
+import ctypes
 import arrow
 import sys
 
-def in_ipython():
+ShBitArray = Union[bitarray, SynchronizedArray]
+
+def in_ipython() -> bool:
     try: return __IPYTHON__
     except NameError: return False
 
-# mp doesnt offer a shared set, so we use a list
-def relative_primes(r:range, primes:list = None):    
-    if not primes: primes = [r[0]]
-    l = len(primes)
-    for i in r[1:]:
-        if i == 1: continue
-        if reduce(and_, [bool(i % j) for j in primes], True):
+def default_sieve(stop:int):
+    b = bitarray('1') * stop
+    b[:2] = False
+    return b
+
+def nth_prime_bound(n:int) -> int:
+    return math.ceil(n * math.log(n * math.log(n)))
+
+def eratosthenes(n:int) -> list:
+    primes = []
+    stop = nth_prime_bound(n)
+    sieve = default_sieve(stop)
+    for i in range(2, stop):
+        if sieve[i]:
             primes.append(i)
+            for j in range(i * i, stop, i):
+                sieve[j] = False
     return primes
+
+def erat_sieve(rng:range, sieve:ShBitArray) -> bitarray:
+    # assumes all primes < rng[0] processed into sieve
+    l = len(sieve)
+    for i in rng:
+        if sieve[i]:
+            for j in range(i * i, l, i):
+                sieve[j] = False
+    return sieve
 
 # if we know all primes < n, then we can detect all primes in [n, n*2] async
 def range_producer(start:int, ncpus:int = mp.cpu_count()):
     stop = start * 2
     delta = (stop - start) // ncpus
     while start < stop:
-        yield range(start, start + delta)
+        yield range(start, min(stop, start + delta))
         start += delta
 
-def test():
-    assert [2,3,5,7] == relative_primes(range(2,10), [])
-        
 if __name__ == '__main__' and not in_ipython():
-    print(arrow.now(), f'starting')
-    n = int(sys.argv[1])
-    top = int(sys.argv[2])
-    with mp.Pool() as p, mp.Manager() as m:
-        shared_primes = m.list(relative_primes(range(2,n)))
-        while n < top:
-            f = partial(relative_primes, primes = shared_primes)
-            p.map(f, range_producer(n))
-            print(arrow.now(), f'finished n={n}; {len(shared_primes)} found')
-            n *= 2
-        pickle.dump(shared_primes, open('primes.pkl','wb'))
-        
+    print(arrow.now(), f'starting; will calculate first 100M primes')
+    n = nth_prime_bound(10 ** 8)
+    i = 2 ** 22
+    sieve = erat_sieve(range(2, i), default_sieve(n))
+    # mp.Array makes a threadsafe shared mem interface for sieve
+    with mp.Pool() as p, mp.Array(ctypes.c_bool, sieve) as b:
+        while i < n:
+            fcn = partial(erat_sieve, b)
+            p.map(fcn, range_producer(i))
+            i *= 2
+    with open('primes.pkl', 'wb') as f:
+        pickle.dump(sieve, f)
+    print(arrow.now(), f'finished; prime sieve in primes.pkl')
+    
