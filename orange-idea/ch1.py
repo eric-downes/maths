@@ -60,9 +60,8 @@ class PreConcept:
             if A == g(B): fc.add({A,B})
         return fc
 
-        
 class NDRelation: #my n-dim extension
-    def __init__(self, rels:Set[set]):
+    def __init__(self, rels:Iterable[set]):
         objs = set()
         emaps = defaultdict(set)
         dmaps = defaultdict(set)
@@ -85,22 +84,22 @@ class NDRelation: #my n-dim extension
     # each element of these is the image of a morphism in Set
     def images(self, e, rm_self:bool = True):
         rm = {e} if rm_self else set()
-        return {s - rm for sid in self._emaps[e] for s in self._imaps[sid]}
+        return {self._imaps[sid] - rm for sid in self._emaps[e]}
         
     def fiber(self, e, U:bool = True, rm_self:bool = True):
-        f = set.union if U else set.intersection
+        f = frozenset.union if U else frozenset.intersection
         rm = {e} if rm_self else set()
         return f( *self.images(e, rm_self=False) ) - rm
 
     def preimage(self, sub:set, U:bool = True, rm_self:bool = True): 
         sub = sub.intersection(self.objects) # otherwise if U risk false {} preimage
-        f = set.union if U else set.intersection
+        f = frozenset.union if U else frozenset.intersection
         rm = sub if rm_self else set()
         return f( *{self.fiber(e, U, False) for e in sub} ) - rm
 
     # TDB's "extension f(A) of a(x)" is preimage(A, U = False)
     def extension(self, sub:set, rm_self:bool = True): 
-        return self.preimage(sub, U=False, rm_self)
+        return self.preimage(sub, U=False, rm_self = rm_self)
 
     def relations(self):
         return self._imaps.values()
@@ -108,24 +107,27 @@ class NDRelation: #my n-dim extension
     def export_as(self, typ):
         if typ == pd.DataFrame: pass # export table / biadjacency matrix
         if typ == nx.Graph: pass # export hypergraph as bigraph
-    
-    def test_self(full = False):
-        R = {{1,2}, {1,2,3}, {1,3}, {3,4}}
-        ndrel = NDRelation(R)
-        assert(ndrel.objects == {1,2,3,4})
-        assert(ndrel.images(1) == {{2}, {2,3}, {3}})
-        assert(ndrel.fiber(1) == {2,3})
-        assert(ndrel.preimage({3,4}) == {2,3,4})
-        assert(ndrel.extension({2,3}) == set())
-        assert(ndrel.extension({2}) == {1})
 
-        R = {{'orange','fruit'}, {'green','fruit'}, {'purple','vegetable'}}
+    @classmethod
+    def test_self():
+        R = {frozenset(s) for s in [{1,2}, {1,2,3}, {1,3}, {3,4}]}
         ndrel = NDRelation(R)
-        assert(ndrel.images('orange') == {{'fruit'}})
-        assert(ndrel.images('fruit') == {{'orange'}, {'green'}})
-        assert(ndrel.extension({'orange','green'}) == {'fruit'})
-        assert(ndrel.extension({'purple'}) == {'vegetable'})
-        assert(ndrel.extension({'orange','purple'}) == set())
+        assert ndrel.objects == {1,2,3,4}, "objects"
+        assert ndrel.images(1) == {frozenset(s) for s in [{2},{2,3},{3}]}, "images"
+        assert ndrel.fiber(1) == {2,3}, "fiber"
+        assert ndrel.preimage({3,4}) == {1,2}, "preimage"
+        assert ndrel.extension({2,3}) == set(), "empty extension"
+        assert ndrel.extension({2}) == {1}, "non-empty ext"
+
+        R = {frozenset(s) for s in [{'orange','fruit'},
+                                    {'green','fruit'},
+                                    {'purple','vegetable'}]}
+        ndrel = NDRelation(R)
+        assert ndrel.images('orange') == {frozenset({'fruit'})}
+        assert ndrel.images('fruit') == {frozenset(s) for s in [{'orange'}, {'green'}]}
+        assert ndrel.extension({'orange','green'}) == {'fruit'}
+        assert ndrel.extension({'purple'}) == {'vegetable'}
+        assert ndrel.extension({'orange','purple'}) == set()
 
         
 # if empty sets commonly result from fiber and preimage with U=False,
