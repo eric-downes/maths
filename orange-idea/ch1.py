@@ -33,8 +33,6 @@ import warnings
 
 class PreConcept:
     def __init__(self, rels: Set[Tuple[Any, Any]]):
-        X = set()
-        Y = set()
         a = defaultdict(lambda : set())
         b = defaultdict(lambda : set())
         for l, r in rels:
@@ -42,24 +40,24 @@ class PreConcept:
             b[r].add(l)
         self.a = a
         self.b = b
-        self.X = X
-        self.Y = Y
-    def ext(self, sub:set, to_right:bool = True) -> set:
-        home = a if to_right else b
-        assert(sub.issubset(home.keys()))
-        return set.intersection( *{home[x] for x in sub} )
-    def f(self, A:set) -> set:
-        return self.ext(A)
-    def g(self, B:set) -> set:
-        return self.ext(B, False)
+    def ext(self, sub:set, to_right:bool = True, U:bool=False) -> set:
+        supdom = self.a if to_right else self.b
+        assert(sub.issubset(supdom.keys()))
+        f = set.union if U else set.intersection
+        return f( *{supdom[x] for x in sub} )
+    def f(self, A:set, U:bool=False) -> set:
+        return self.ext(A, U=U)
+    def g(self, B:set, U:bool=False) -> set:
+        return self.ext(B, to_right=False, U=U)
     def formal_concepts(self):
         fc = set()
-        for A in powerlist(a.keys()):
+        for A in powerlist(self.a.keys()):
             B = f(A)
             if not B: continue
-            if A == g(B): fc.add({A,B})
+            if A == g(B): fc.add(frozenset({A,B}))
         return fc
-
+    
+    
 class NDRelation: #my n-dim extension
     def __init__(self, rels:Iterable[set]):
         objs = set()
