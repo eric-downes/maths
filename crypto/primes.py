@@ -1,5 +1,7 @@
 from multiprocessing.sharedctypes import SynchronizedArray
 import multiprocessing as mp
+
+from sympy.ntheory.factor_ import primenu
 from functools import partial
 from bitarray import bitarray
 from typing import *
@@ -45,13 +47,13 @@ def _omega_hlpr(factors:Set[Tuple[int,int]]) -> Tuple[int,int]:
     omega = len(factors)
     Omega = sum(map(lambda t: t[1], factors))
     mu = 0 if Omega > omega else (-1 if omega % 2 else 1)
-    return (facprint(factors), mu, omega, Omega)
+    return (facprint(factors), mu, omega, Omega, omega + Omega)
 
 # broken?
 # demo only; use euclid for prod
 def gcd_omegas(i:int, j:int):
     sm, big = (i, j) if i <= j else (j, i)
-    df = pd.DataFrame(index=['u','o','O'])
+    df = pd.DataFrame(index=['u','o','O','oO'])
     row = _omega_hlpr(factor(big))
     df[row[0]] = row[1:]
     while sm:
