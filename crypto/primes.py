@@ -129,11 +129,13 @@ def first_n_primes(n:int) -> List[int]:
     if len(primes) >= n: return primes[:n]
     raise NotImplementedError(f'retrieval > {n} not implemented yet ... adapt __main__ clause?')
 
-def euclid(i:int, j:int):
+def gcd(i:int, j:int): # euclidean algo for meet
     sm, big = (i, j) if i <= j else (j, i)
     while sm: big, sm = (sm, big % sm)        
     return big
 
+def lcm(i:int, j:int): # join
+    return j * i // gcd(i, j)
 
 if __name__ == '__main__' and not in_ipython():
     # 19 min 54 sec for 100M primes serial version

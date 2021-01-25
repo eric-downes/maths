@@ -155,9 +155,6 @@ def concept_generator(self, seq=list(self.objects)):
             if self.extension(set(x))
             yield [seq[0]] + sub
             yield sub
-
-def ndrel_to_preconcept()
-            
             
 '''
 0. test what we have so far
