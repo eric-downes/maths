@@ -1,14 +1,5 @@
 # maths
 
-```mermaid
-sequenceDiagram
-  A->> B: Query
-  B->> C: Forward query
-  Note right of C: Thinking...
-  C->> B: Response
-  B->> A: Forward response
-```
-
 Mathematical Miscellania
 
 * orange-idea --- Tai-Danae Bradley's [Thesis](https://arxiv.org/abs/2004.05631)
