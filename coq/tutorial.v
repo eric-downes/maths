@@ -1,3 +1,30 @@
+(* 
+Instructions for OSX
+
+1. `brew install coq` 
+2. follow instructions linked at
+   https://mdnahas.github.io/doc/nahas_tutorial
+
+this gives you the basic coqtop.  For groupoid (instead of setoid)
+based reasoning, use the HoTT version of coqtop:
+
+3. if in emacs, add the line `(setq proof-prog-name-ask 1)` to `~/.emacs`
+4. clone hott library repo:
+
+`git clone https://github.com/HoTT/HoTT.git`
+
+5. install
+
+```
+cd HoTT
+./autogen.sh
+./configure
+make
+```
+
+*)
+
+
 (* True -> True *)
 Theorem my_first_proof : (forall A : Prop, A -> A).
 Proof.
@@ -19,7 +46,7 @@ Proof.
   intros B.
   intros pA.
   intros AimpB.
-  pose (pB := AimpB pA). (* A_implies_B APPLIED_TO proof_of_A *) 
+  pose (pB := AimpB pA). (* order: function composition *)
   exact pB. (* could also say "A_implies_B proof_of_A*)
 Qed.
 
