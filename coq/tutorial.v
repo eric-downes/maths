@@ -27,9 +27,11 @@ For more, see: https://github.com/HoTT/HoTT/blob/master/INSTALL.md
 
 Notes on HoTT: 
  -- you need to include bullets when (- + *, -- ++ **, etc) when using subgoals
+    (thx Mike Shulman)
 
 *)
 Require Import HoTT.
+Require Import Bool.
 
 (* True -> True *)
 Theorem my_first_proof : (forall A : Prop, A -> A).
@@ -45,7 +47,7 @@ Qed.
 (forall A : Prop, A -> A)
 *)
 
-
+(* seems odd you dont provide a term of type A->B *)
 Theorem modus_poenens : (forall A B : Prop, A -> (A->B) -> B).
 Proof.
   intros A.
@@ -71,10 +73,78 @@ Qed.
 http://prl.ccs.neu.edu/blog/2017/02/21/bullets-are-good-for-your-coq-proofs/
 *)
 
-
-
-  
 (* 
-stopped at "true and false vs. True and False" 
+False is more like "Unprovable"
+True is "Provable"
+false is a boolean
+true is a boolean
+ *)
+
+Inductive False : Prop := .
+
+Inductive True : Prop := I : True.
+
+Inductive bool : Set :=
+| true : bool
+| false : bool.
+
+
+(* proving True allows us to use I *)
+
+Theorem True_can_be_proven : True.
+  exact I.
+Qed.
+
+(* proving "not False" uses an empty case *)
+
+Theorem Not_False : ~False.
+Proof.
+  intros proof_of_False.
+  case proof_of_False.
+Qed.
+
+(* 
+in HoTT/Coq ~ maps to Empty... if you need the traditional Coq usage,
+try "A -> False" instead of ~A
+*)
+
+Theorem Not_TiF : (True -> False) -> False.
+Proof.
+  intros TiF.
+  refine (TiF _).
+  - exact I.
+Qed.
+
+
+(* beware "reducto ad absurdum" *)
+
+Theorem absurd : forall A B : Prop, A -> ~A -> B.
+Proof.
+  intros A B.
+  intros pA pNotA.
+  pose (pFalse := pNotA pA).
+  case pFalse.
+Qed.
+
+
+(* *)
+
+
+(* 
 https://mdnahas.github.io/doc/nahas_tutorial
 *)
+
+
+
+
+
+
+
+
+
+
+Theorem modus_poenens : (forall A B : Prop, A -> (A->B) -> B).
+  intros A B
+
+
+
