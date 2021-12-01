@@ -8,7 +8,7 @@ while also passing an arg via the decorator argument(s)
 from typing import *
 import functools as ft
 
-def outer_wrap(name:str) -> Callable:
+def outer_wrap(name:str = None) -> Callable:
     def inner_wrap(fcn:Callable) -> Callable[[dict],dict]:
         @ft.wraps(fcn) # alt: `def g(self, d:dict, fcn:Callable) -> dict:`
         def g(self, d:dict) -> dict:
@@ -23,7 +23,11 @@ class C:
     x = y
     @outer_wrap(n)
     def f(self, a:int, b:int) -> int: return a + b
-
+    @outer_wrap()
+    def ff(self, a:int, b:int) -> int: return a + b
+    
 c = C()
-assert (r := {n: 3, 'x': y}) == c.f(d := {'a':1, 'b':2}), "boo hiss; in: {d}; out: {r}"
+assert c.f.__wrapped__(c.f.__self__, 1, 2) == 3, "base function not behaving as expected"
+for fcn, s in ((c.f, n), (c.ff, None)):
+    assert (r := {s: 3, 'x': y}) == fcn(d := {'a':1, 'b':2}), "{fcn.__name__} boo hiss; in: {d}; out: {r}"
 print('Passed!')
