@@ -2,7 +2,62 @@ from typing import *
 import operator as op
 from itertools import permutations
 
+import numpy
+import numba
 import pandas as pd
+
+Num = float|int
+
+@numba.jit
+def extrema(a:np.array) ->  tuple[Any,Any]:
+    minimum = a[0]
+    maximum = a[0]
+    for e in a[1:]:
+        if e < minimum: minimum = e
+        elif e > maximum: maximum = e
+    return (minimum, maximum)
+
+
+
+class FinBinOp(np.array):
+    def __init__(self, table:np.array, strict:bool = True):
+        assert len(sh := table.shape) == 2 and sh[0] == sh[1]
+        self.table = table
+        self._id = blake2b(self.table).digest()
+    def is_closed(self) -> bool:
+        return self.table.dtype == int and extrema(self.table[:]) in Interval(0, len(self.table), parens = '[)')
+    def is_unital(self) -> bool:
+        id_ = np.arange(len(self.table))
+        if (row_comp := (self.table == id_).all(1)).any():
+            i = np.argmax(row_comp)
+            return (self.table.T[i] == id_).all()
+        return False
+    def is_abelian(self)  -> bool:
+        return (self.table == self.table.T).all()
+    
+    
+class Magma(FinBinOp):
+    def __init__(self, table:np.ndarray, strict:bool = True):
+        if strict and 
+            raise TypeError('pased array must have int values in [0, len - 1]')
+        super().__init__(table, strict)        
+    def _op_(self, i:int, j:int) -> MagmaElem:
+        return MagmaElem(self.table[i,j])
+
+class MagmaElem(int):
+    def __init__(self, x:int, magma:Magma):
+        self.magma = magma
+    def __mul__(self, other:int):
+        if isinstance(other, MagmaElem):
+            
+        
+        
+
+        
+            
+            
+        
+
 
 class Magma:
     def __init__(self, table:pd.DataFrame, elements:list = None):

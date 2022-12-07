@@ -3,8 +3,61 @@ from hashlib import blake2b
 from typing import *
 
 import numpy as np
+from numpy.typing import NDArray
 
-PreEndo = int|list[int]
+T = TypeVar('T')
+DoK = dict[tuple[T,T], T]
+
+def the_hash(a:np.array) -> bytes:
+    return blake2b(a).digest()
+
+def double_rows(a:np.array) -> np.array:
+    return np.vstack((a, np.empty(dtype = a.dtype, shape = a.shape)))
+
+def row_closure(a : NDArray[int], verbose:bool = True) -> NDArray[int]:
+    n = A.shape[0]
+    a = double_rows(a)
+    hashes = {the_hash(a[i]):i for i in range(a.shape[0])}
+    dok : DoK[int] = {}
+    i = 0
+    j = 0
+    while i < n:
+        ai = a[i]
+        while j < n:
+            if k := hashes.get(
+                    h := the_hash(
+                        ak := ai[ a[j] ]), None) is not None:
+                dok[(i, j)] = k
+                continue
+            n = (k := n) + 1
+            a[k] = ak
+            hashes[h] = k
+            if n == a.shape[0]:
+                a = double_size(a)
+            if verbose:
+                print(f'found a new row {i} o {j} = `{h.hex()[:4]..h.hex()[-4:]}`')
+    return dok
+
+            
+
+def dok_row_monoid(table:NDArray[int]) -> DoK[int]:
+    assert len(shape := table.shape) == 2 and shape[0] == shape[1]
+        q = mp.Queue()
+        row_monoid = {}
+        
+        name = shm_copy(table) # do the memory thing
+        search_fcn = ft.partial(new_row, table_name = name, q = q)
+        procs = []
+        jn = {'j':0, 'n':self.order}
+        hs = self.hashes.copy()
+        while outer_loop(name, search_fcn, jn, procs, hs, q, row_monoid):
+            if caught_up(jn, q):
+                if 
+                while procs:
+                    procs.pop().join()
+        return Monoid.from_dok(row_monoid)
+
+
 
 class Endo(list):
     def __init__(self, l:PreEndo):
@@ -57,6 +110,7 @@ class FiniteMagma:
         hs = self.hashes.copy()
         while outer_loop(name, search_fcn, jn, procs, hs, q, row_monoid):
             if caught_up(jn, q):
+                if 
                 while procs:
                     procs.pop().join()
         return Monoid.from_dok(row_monoid)
@@ -74,7 +128,10 @@ def shm_array(name:str): pass
 def shm_resize(name:str): pass
 
 def shm_copy(arr:np.array): pass
-    
+
+
+
+
 def caught_up(jn:dict[str, int], q:mp.Queue) -> bool:
     return q.empty() and jn['n'] - 1 == jn['j']
 
@@ -88,6 +145,7 @@ def new_row(i:int, j:int, table:np.array, q:mp.Queue) -> None:
 def look_for_new_rows(search_fcn:Callable[[int,int],None],
                       jn:dict[str,int],
                       procs:list[mp.Process]) -> None:
+    
     for i in range(jn['n']):
         for j in range(jn['j'], jn['n']):
             p = mp.Process(target = search_fcn, args = (i, j))
