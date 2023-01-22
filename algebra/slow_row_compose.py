@@ -83,6 +83,7 @@ def row_monoid(a: NDArray[int]) -> RowMonoid:
     a, dok, rows = row_closure(a)
     order = int(np.round(np.sqrt(len(dok))))
     if row_hash(np.arange(order)) not in rows:
+        # adjoin an identity if one is not already present in the closure
         e = order
         order += 1
         for j in range(order):
@@ -100,8 +101,3 @@ if __name__ == '__main__':
     monoid_data = row_monoid(rps_magma)
     DataFrame(monoid_data.monoid_table).to_csv(fil, index=False, header=False)
     print('done')
-
-        
-        
-
-        

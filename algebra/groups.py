@@ -36,6 +36,7 @@ class FinBinOp(np.array):
         return (self.table == self.table.T).all()
     
     
+    
 class Magma(FinBinOp):
     def __init__(self, table:np.ndarray, strict:bool = True):
         if strict and 
@@ -117,7 +118,55 @@ class FinMagma(FinBinop):
         assert self.is_closed()
 
 
+PreEndo = int|list[int]
 
+class Endo(list):
+    def __init__(self, l:PreEndo):
+        if isinstance(l, int):
+            l = [l]
+        super().__init__(l)
+        self.is_id = self == list(range(len(self)))
+    def __mul__(self, other:PreEndo|Endo) -> Endo:
+        return self(other)
+    def __rmul__(self, other:PreEndo|Endo) -> Endo:
+        if not isinstance(other, Endo):
+            other = Endo(other)
+        return other(self)
+    def __call__(self, other:PreEndo|Endo, strict:bool = True) -> Endo:
+        if not isinstance(other, Endo):
+            other = Endo(other)
+        if strict: assert len(self) == len(other)
+        if self.is_id: return other.copy()
+        if other.is_id: return self.copy()
+        return Endo([self[i % len(self)] for i in other])
+
+class FiniteMonoid(FiniteMagma):
+    def __init__(self, lol:list[list[int]]|np.array):
+        super().__init__(lol)
+        if not self.unital:
+            self.order += 1
+            self.table[self.order] = np.arange(self.order)
+            
+        
+    
+class FiniteMagma:
+    def __init__(self, lol:list[list[int]]|np.array):
+        self.table = shm_array(lol)
+        assert (np.issubdtype(self.table.dtype, np.integer)
+                and (0 <= self.table < n).all()), 'not closed as written'
+        assert self.table.shape == (n, n), 'not square'
+        self.order = len(self.table)
+        self.unital = (np.arange(len(lol))) == self.table).all(1).any()
+        self.hashes = {the_hash(self.table[i]):i for i in range(self.order)}
+        # make table a shared-memory object
+        
+    def row_monoid(self) -> Monoid:
+        # need to detect/adjoin identity as well
+        return row_monoid(
+            table = self.table,
+            n = self.order,
+            hashes = self.hashes.copy())
+    
 
 class GroupDict(dict):
 
